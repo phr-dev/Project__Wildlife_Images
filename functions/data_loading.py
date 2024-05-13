@@ -1,6 +1,8 @@
 import sys
-
 import pandas as pd
+import cv2 as cv
+import os
+import glob
 
 # project-specific custom functions
 ## import functions
@@ -37,3 +39,19 @@ def load_data():
     Y_test = df_test.iloc[:, 9:]
 
     return (X_train_list, Y_train), (X_val_list, Y_val), (X_test_list, Y_test)
+
+def import_image_files(n_images=16488):
+    if os.name == "nt":
+        img_files = glob.glob("..\\data\\train_features\\*.jpg")
+    else:
+        img_files = glob.glob("../data/train_features/*.jpg")
+    image_list = []
+    for file in img_files[0:n_images]:
+        image_list.append(cv.imread(file))
+    return image_list
+
+def import_images_from_file_list(file_list):
+    image_list = []
+    for file in file_list:
+        image_list.append(cv.imread(file))
+    return image_list
