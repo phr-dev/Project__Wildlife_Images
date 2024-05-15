@@ -7,6 +7,25 @@ import glob
 # project-specific custom functions
 ## import functions
 
+
+def get_label_name_from_filename(filename: str) -> str:
+    """returns the image category given its filename
+    
+    Args:
+        filename (str): the filename
+
+    Returns:
+        str: the category label (name of the animal)
+    """
+
+    df_info__all = pd.read_csv("../data/data_info__all.csv")  # DataFrame containing all file info (including the labels)
+
+    ID = filename.rstrip(".jpg")    
+    label_str = df_info__all.query("id == @ID")["animal_label"].values[0]
+
+    return label_str
+
+
 def import_image_files(n_images=16488):
     if os.name == "nt":
         img_files = glob.glob("..\\data\\train_features\\*.jpg")
@@ -17,11 +36,13 @@ def import_image_files(n_images=16488):
         image_list.append(cv.imread(file))
     return image_list
 
+
 def import_images_from_file_list(file_list):
     image_list = []
     for file in file_list:
         image_list.append(cv.imread(file))
     return image_list
+
 
 def load_data():
     """Function for loading train, validation and test datasets.
