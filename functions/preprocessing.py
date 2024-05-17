@@ -38,7 +38,7 @@ def build_dataset_directories_with_categories(fraction_train:float|int = 1.0,
         print_status (bool, optional): Boolean switch for printing status info messages. Defaults to True.
 
     Returns:
-        _type_: returns None
+        None: returns None
     """
 
     dir_data_parent_relative = "../data/"  # the relative directory path to all data files
