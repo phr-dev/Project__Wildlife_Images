@@ -124,10 +124,10 @@ def plot_graph(selected_animals, map_df, central_points, show_clusters=False):
     filtered_central_points = central_points[central_points['animal_list'].isin(selected_animals)]
 
     # Load upper and lower boundaries of the park from GeoJSON files
-    with open("../data/GeoJson/export_upper.geojson") as f:
+    with open("export_upper.geojson") as f:
         upper_boundary_geojson = json.load(f)
 
-    with open("../data/GeoJson/export_lower.geojson") as f:
+    with open("export_lower.geojson") as f:
         lower_boundary_geojson = json.load(f)
 
     # Create a text layer
