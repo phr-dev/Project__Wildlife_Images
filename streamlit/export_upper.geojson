@@ -1,0 +1,30 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-turbo",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2024-05-13T15:05:15Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/267374908",
+        "boundary": "national_park",
+        "source": "OpenTreetMap"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -7.1810468,
+            6.1226127
+          ],
+          [
+            -7.4252089,
+            6.1248424
+          ]
+        ]
+      },
+      "id": "way/267374908"
+    }
+  ]
+}

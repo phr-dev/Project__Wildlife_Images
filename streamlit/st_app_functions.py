@@ -271,20 +271,19 @@ def animal_counts_plotted(selected_animals, map_df, bar_width=0.8, figsize=(5,5)
         }
     )
     ax.set_xticks(range(len(dict2)))
-    #ax.set_ylabel('Counts', color=element_color, size=20)
     ax.set_xticklabels(list(dict2.keys()), rotation=90, color=element_color, fontsize=18)
     ax.tick_params(axis='x', colors=element_color, labelsize=18)
     ax.tick_params(axis='y', colors=element_color, labelsize=18)
-    # Set the spines (borders) of the plot to green
+    # Set the spines (borders) of the plot to white
     for spine in ax.spines.values():
         spine.set_edgecolor(element_color)
 
-    # Adjust the color of the tick labels and other elements
+    # Adjust the color of the tick labels and title
     ax.yaxis.label.set_color(element_color)
     ax.xaxis.label.set_color(element_color)
     ax.title.set_color(element_color)
 
-    # Ensure grid lines are not visible (optional)
+    # Ensure grid lines are not visible
     ax.grid(False)
 
     # Return the figure
