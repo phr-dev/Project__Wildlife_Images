@@ -1,11 +1,9 @@
 import sys
+import numpy as np
 import pandas as pd
 import cv2 as cv
 import os
 import glob
-
-# project-specific custom functions
-## import functions
 
 
 def get_label_name_from_filename(filename: str) -> str:
@@ -26,7 +24,16 @@ def get_label_name_from_filename(filename: str) -> str:
     return label_str
 
 
-def import_image_files(n_images=16488):
+def import_image_files(n_images: int = 16488) -> list[np.ndarray]:
+    """Return a list of numpy.ndarrays containing a given number of images from the training dataset.
+
+    Args:
+        n_images (int, optional): Number of images to load from the training set and return. Defaults to 16488, which is the total number of images in the training set.
+
+    Returns:
+        list[np.ndarray]: a list containing image data in form of numpy.ndarray
+    """
+
     if os.name == "nt":
         img_files = glob.glob("..\\data\\train_features\\*.jpg")
     else:
@@ -34,13 +41,24 @@ def import_image_files(n_images=16488):
     image_list = []
     for file in img_files[0:n_images]:
         image_list.append(cv.imread(file))
+    
     return image_list
 
 
-def import_images_from_file_list(file_list):
+def import_images_from_file_list(file_list: list[str]) -> list[np.ndarray]:
+    """Return a list of numpy.ndarrays containing images read from files passed as the argument.
+
+    Args:
+        file_list (list[str]): list of image files to load and return.
+
+    Returns:
+        list[np.ndarray]: a list containing image data in form of numpy.ndarray
+    """
+
     image_list = []
     for file in file_list:
         image_list.append(cv.imread(file))
+    
     return image_list
 
 
@@ -48,7 +66,7 @@ def load_data():
     """Function for loading train, validation and test datasets.
 
     Returns:
-        tuple: 3-tuple containing (a list of) features and (one-hot-encoded) labels for train, validation and test data
+        tuple: 3-tuple containing (a list of) features and (one-hot-encoded) labels for train, validation and test data.
     """
 
     dir_data_info_relative = "../data/dataset_infos/"  # the relative directory path to all data files
