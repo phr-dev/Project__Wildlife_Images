@@ -1,13 +1,13 @@
 import streamlit as st
-#import sys
+import sys
 import time
 import pandas as pd
-# import numpy as np
-# from PIL import Image
-#from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_input, decode_predictions
+import numpy as np
+from PIL import Image
+import tensorflow as tf
 
 # Import functions with relative path
-#sys.path.append("../functions")
+#sys.path.append(".")
 from st_app_functions import get_started, user_name, create_map_df, plot_graph, animal_counts_plotted, get_base64_image
 
 # Define a random seed
@@ -30,6 +30,16 @@ st.set_page_config(
 st.sidebar.markdown("## Navigation")
 tabs = st.sidebar.radio("", ["Get Started", "Trip Planner", "My Sightings", "Info"])
 st.sidebar.markdown("---")
+
+# Model stuff
+#@st.cache(allow_output_mutation=True)
+@st.cache_resource()
+def load_model():
+    print("\nLoading model!!\n")
+    return tf.keras.models.load_model("../models/ConvNeXtXLarge_v2.keras")
+model = load_model()
+
+class_labels = ['an antelope/duiker', 'a bird', 'a blank scene', 'a civet/genet', 'a hog', 'a leopard', 'a monkey/prosimian', 'a rodent']
 
 if tabs == "Get Started":
     # Create three equally sized columns to get logo in the center. col1/2 are just placeholder
@@ -168,25 +178,29 @@ elif tabs == "My Sightings":
 
     # # Load the MobileNetV2 model
     # model = MobileNetV2(weights='imagenet')
+    
 
-    # def preprocess_image(image):
-    #     img = Image.open(image).convert('RGB')
-    #     img = img.resize((224, 224))
-    #     img_array = np.array(img)
-    #     img_array = np.expand_dims(img_array, axis=0)
-    #     img_array = preprocess_input(img_array)
-    #     return img_array
+    def preprocess_image(image):
+        img = Image.open(image).convert('RGB')
+        img = img.resize((224, 224))
+        img_array = np.array(img)
+        img_array = np.expand_dims(img_array, axis=0)
+        #img_array = preprocess_input(img_array)
+        #img = keras.utils.load_img(img_path, target_size=(224, 224))
+        #x = keras.utils.img_to_array(img)
+        #x = np.expand_dims(x, axis=0)
+        return img_array
 
     with col3:
         st.write("Leaderboard")
 
         # List of names and corresponding image paths. Placeholder images
         leaderboard_data = [
-            ("TNP.jpeg", "J. Goodall"),
-            ("TNP.jpeg", "T. Stark"),
-            ("TNP.jpeg", "Cpt. J. Sparrow"),
-            ("TNP.jpeg", "Hulk"),
-            ("TNP.jpeg", "R2D2"),
+            ("JG.bmp", "J. Goodall"),
+            ("TS.png", "T. Stark"),
+            ("CJS.bmp", "Cpt. J. Sparrow"),
+            ("H.bmp", "Hulk"),
+            ("R2.bmp", "R2D2"),
         ]
 
         # Custom CSS to align images and text
@@ -222,7 +236,7 @@ elif tabs == "My Sightings":
     with col4:
         uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
         if uploaded_file is not None:
-            st.image(uploaded_file, caption="Uploaded Image", width=400)
+            st.image(uploaded_file, caption="Uploaded Image", width=800)
             identify_button_clicked = st.button("Identify Animal")
             if identify_button_clicked:
                 progress_bar = st.progress(0)
@@ -232,14 +246,17 @@ elif tabs == "My Sightings":
                     loading_text.text(f"Loading... {percent_complete + 1}%")
                     progress_bar.progress(percent_complete + 1)
                 # Where classification takes place
-                # try:
-                #     img_array = preprocess_image(uploaded_file)
-                #     predictions = model.predict(img_array)
-                #     label = decode_predictions(predictions)[0][0]
-                #     text_to_write = f"Congrats! We are {label[2]*100:.2f}% confident that you photographed a {label[1]}."
-                #     st.write(get_started(text_to_write))
-                # except Exception as e:
-                #     st.error(f"An error occurred: {e}")
+                try:
+                    img_array = preprocess_image(uploaded_file)
+                    predictions = model.predict(img_array)
+                    label = np.argmax(predictions)
+                    pred_perc = 100.0 * np.max(predictions)
+                    print(pred_perc)
+                    print(f"pred_perc:.1f")
+                    text_to_write = f"Congrats! We are {pred_perc:.1f}% confident that you photographed {class_labels[label]}."
+                    st.write(get_started(text_to_write))
+                except Exception as e:
+                    st.error(f"An error occurred: {e}")
                     
 elif tabs == "Info":
     st.header("Info")
