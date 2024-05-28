@@ -5,7 +5,16 @@ import numpy as np
 import pandas as pd
 
 
-def copy_files_to_directories(input_filepaths: list, output_directories: str) -> None:
+def copy_files_to_directories(input_filepaths: list[str], output_directories: list[str]) -> None:
+    """Copy specified files into chosen output directories and create directories if not yet existing.
+
+    Args:
+        input_filepaths (list[str]): list of filepaths for files that shall be copied.
+        output_directories (list[str]): list of output directories to copy to (one output directory per input filepath)
+
+    Returns:
+        None: None
+    """
 
     # create the unique output directories if not existing
     for directory in np.unique(output_directories):
