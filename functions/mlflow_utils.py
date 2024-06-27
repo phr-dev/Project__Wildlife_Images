@@ -77,13 +77,11 @@ class _MLflowLogger(tf.keras.callbacks.Callback):
 
 
 
-def mlflow_train_keras_model(train_fn, X_train, y_train, X_valid, y_valid, search_space, n_evals, mlflow_tags={}):
+def mlflow_train_keras_model(train_fn, train_data, valid_data, search_space, n_evals, mlflow_tags={}, log_model=True):
 
-    signature = mlflow.models.infer_signature(X_train, y_train)
     mlflow_logger = _MLflowLogger()
 
     components = {
-        "signature": signature,
         "mlflow_logger": mlflow_logger,
     }
 
@@ -91,10 +89,8 @@ def mlflow_train_keras_model(train_fn, X_train, y_train, X_valid, y_valid, searc
         result = train_fn(
             search_params,
             components,
-            X_train,
-            y_train,
-            X_valid,
-            y_valid
+            train_data,
+            valid_data
             )
         return result
     
@@ -105,14 +101,22 @@ def mlflow_train_keras_model(train_fn, X_train, y_train, X_valid, y_valid, searc
             space=search_space,
             algo=hyperopt.tpe.suggest,
             max_evals=n_evals,
-            trials=trials
+            trials=trials,
+            trials_save_file="../mlflow/hyperopt_trials.txt"
         )
         
-        best_run = sorted(trials.results, key=lambda x: x["loss"])[0]
+        best_run = sorted(trials.results, key=lambda x: x["val_accuracy"], reverse=True)[0]
         mlflow.log_params(best)
         mlflow.log_metric("final_val_loss", best_run["loss"])
+        mlflow.log_metric("val_accuracy", best_run["val_accuracy"])
+
+        for epoch_idx in range(len(best_run["history"].history["loss"])):
+            for key in ("loss", "val_loss", "accuracy", "val_accuracy"):
+                mlflow.log_metric(key, best_run["history"].history[key][epoch_idx], step=epoch_idx)
+
         if len(mlflow_tags) > 0:
             mlflow.set_tags(mlflow_tags)
-        mlflow.tensorflow.log_model(best_run["model"], "model", signature=signature)
+        if log_model:
+            mlflow.tensorflow.log_model(best_run["model"], "model")
 
     return run
