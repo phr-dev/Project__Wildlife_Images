@@ -90,35 +90,11 @@ class _MLflowLogger(tf.keras.callbacks.Callback):
             mlflow.log_metrics(logs, step=epoch)
 
 
-def mlflow_train_keras_model(train_fn: Callable,
-                             X_train: np.ndarray,
-                             y_train: np.ndarray,
-                             X_valid: np.ndarray,
-                             y_valid: np.ndarray,
-                             search_space: dict,
-                             n_evals: int,
-                             mlflow_tags: dict = {}) -> mlflow.entities.Run:
-    """fuction for training a Keras model including hyperparameter optimization with hyperopt. Launches a number of runs corresponding to n_evals and returns a handle to the run with the best performance.
+def mlflow_train_keras_model(train_fn, train_data, valid_data, search_space, n_evals, mlflow_tags={}, log_model=True):
 
-    Args:
-        train_fn (Callable): Function containing the model architecture specification and compilation. See train_model_sample in the mlflow_playground.ipynb notebook for a usage example.
-        X_train (np.ndarray): The training data features.
-        y_train (np.ndarray): The training data labels.
-        X_valid (np.ndarray): The validation data features.
-        y_valid (np.ndarray): The validation data labels.
-        search_space (dict): Dictionary containing the hyperparemter search space used in hyperparamter optimization by hyperopt.
-        n_evals (int): Number of hyperopt optimization runs to perform, i.e. how many models with different hyperparameters are trained.
-        mlflow_tags (dict, optional): Dictionary containing tags displayed in the mlflow GUI. The tags are hierarchically ordered. Defaults to {}.
-
-    Returns:
-        mlflow.entities.Run: Handle to the run with the best performance.
-    """
-
-    signature = mlflow.models.infer_signature(X_train, y_train)
     mlflow_logger = _MLflowLogger()
 
     components = {
-        "signature": signature,
         "mlflow_logger": mlflow_logger,
     }
 
@@ -126,10 +102,8 @@ def mlflow_train_keras_model(train_fn: Callable,
         result = train_fn(
             search_params,
             components,
-            X_train,
-            y_train,
-            X_valid,
-            y_valid
+            train_data,
+            valid_data
             )
         return result
     
@@ -140,14 +114,22 @@ def mlflow_train_keras_model(train_fn: Callable,
             space=search_space,
             algo=hyperopt.tpe.suggest,
             max_evals=n_evals,
-            trials=trials
+            trials=trials,
+            trials_save_file="../mlflow/hyperopt_trials.txt"
         )
         
-        best_run = sorted(trials.results, key=lambda x: x["loss"])[0]
+        best_run = sorted(trials.results, key=lambda x: x["val_accuracy"], reverse=True)[0]
         mlflow.log_params(best)
         mlflow.log_metric("final_val_loss", best_run["loss"])
+        mlflow.log_metric("val_accuracy", best_run["val_accuracy"])
+
+        for epoch_idx in range(len(best_run["history"].history["loss"])):
+            for key in ("loss", "val_loss", "accuracy", "val_accuracy"):
+                mlflow.log_metric(key, best_run["history"].history[key][epoch_idx], step=epoch_idx)
+
         if len(mlflow_tags) > 0:
             mlflow.set_tags(mlflow_tags)
-        mlflow.tensorflow.log_model(best_run["model"], "model", signature=signature)
+        if log_model:
+            mlflow.tensorflow.log_model(best_run["model"], "model")
 
     return run
